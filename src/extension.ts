@@ -382,6 +382,26 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    const attachAllCommand = vscode.commands.registerCommand('tmuxgo_vscode.attachAll', async () => {
+        const sessions = await tmuxService.getSessions();
+        if (sessions.length === 0) {
+            vscode.window.showWarningMessage('No tmux sessions found');
+            return;
+        }
+        for (const name of sessions) {
+            const existing = vscode.window.terminals.find(t => t.name === name);
+            if (existing) {
+                existing.show();
+            } else {
+                const terminal = vscode.window.createTerminal(name);
+                terminal.sendText(`tmux attach -t "${name}"`);
+                terminal.show();
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        vscode.window.showInformationMessage(`Attached to ${sessions.length} session(s)`);
+    });
+
     context.subscriptions.push(
         attachCommand,
         refreshCommand,
@@ -397,6 +417,7 @@ export function activate(context: vscode.ExtensionContext) {
         splitPaneDownCommand,
         inlineNewWindowCommand,
         inlineSplitPaneCommand,
+        attachAllCommand,
         tmuxSessionProvider // Add provider to dispose auto-refresh on deactivation
     );
 }

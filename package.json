@@ -124,6 +124,12 @@
         "command": "tmuxgo_vscode.kill-pane",
         "title": "Kill Pane",
         "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.attachAll",
+        "title": "Attach All Sessions",
+        "category": "TmuxGo",
+        "icon": "$(debug-start)"
       }
     ],
     "menus": {
@@ -142,6 +148,11 @@
           "command": "tmuxgo_vscode.toggleAutoRefresh",
           "when": "view == tmuxgo_sessions",
           "group": "1_settings"
+        },
+        {
+          "command": "tmuxgo_vscode.attachAll",
+          "when": "view == tmuxgo_sessions",
+          "group": "navigation"
         }
       ],
       "view/item/context": [

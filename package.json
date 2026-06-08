@@ -280,6 +280,7 @@
     ]
   },
   "scripts": {
+    "postinstall": "electron-rebuild -m node_modules/node-pty",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",

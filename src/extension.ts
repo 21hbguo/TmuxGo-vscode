@@ -4,7 +4,7 @@ import { TmuxClient } from './tmux-client'
 import { SessionTreeProvider } from './session-tree-provider'
 import { SessionDetailsWebview, type SessionAction } from './session-details-webview'
 import { SessionOrderManager } from './session-persistence'
-import { registerCommands } from './commands'
+import { registerCommands, attachedTerminals } from './commands'
 import { SessionTreeItem, type TreeItem } from './session-tree-items'
 
 let tmux: TmuxClient
@@ -78,11 +78,17 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(statusItem)
 
   const updateStatus = async () => {
+    // 优先显示我们自己 attach 的 session
+    if (attachedTerminals.size > 0) {
+      const names = [...attachedTerminals.keys()]
+      statusItem.text = `$(terminal) tmux: ${names.join(', ')}`
+      statusItem.show()
+      return
+    }
     try {
       const sessions = await tmux.listSessions()
       if (sessions.length > 0) {
-        const active = sessions.find(s => s.attached > 0) || sessions[0]
-        statusItem.text = `$(terminal) tmux: ${active.name}`
+        statusItem.text = `$(terminal) tmux: ${sessions[0].name}`
         statusItem.show()
       } else {
         statusItem.text = '$(terminal) tmux: none'
@@ -97,6 +103,8 @@ export function activate(context: vscode.ExtensionContext): void {
   updateStatus()
   const statusTimer = setInterval(updateStatus, 5000)
   context.subscriptions.push({ dispose: () => clearInterval(statusTimer) })
+  context.subscriptions.push(vscode.window.onDidOpenTerminal(() => updateStatus()))
+  context.subscriptions.push(vscode.window.onDidCloseTerminal(() => updateStatus()))
 
   // 9. Auto-refresh (reads refreshInterval from config)
   const config = vscode.workspace.getConfiguration('tmuxgo_vscode')

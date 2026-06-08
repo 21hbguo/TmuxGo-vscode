@@ -6,7 +6,7 @@ import { SessionTreeItem, WindowTreeItem, PaneTreeItem, type TreeItem } from './
 import { batchKillSessions, showBatchDeletePreview } from './batch-operations'
 import { SessionOrderManager } from './session-persistence'
 
-const attachedTerminals = new Map<string, vscode.Terminal>()
+export const attachedTerminals = new Map<string, vscode.Terminal>()
 
 function createAndTrackTerminal(
   context: vscode.ExtensionContext,

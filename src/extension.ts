@@ -402,6 +402,55 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(`Attached to ${sessions.length} session(s)`);
     });
 
+    const batchAttachCommand = vscode.commands.registerCommand('tmuxgo_vscode.batchAttach', async () => {
+        const sessions = await tmuxService.getSessions();
+        if (sessions.length === 0) {
+            vscode.window.showWarningMessage('No tmux sessions found');
+            return;
+        }
+        const picked = await vscode.window.showQuickPick(sessions, {
+            canPickMany: true,
+            placeHolder: 'Select sessions to attach'
+        });
+        if (!picked || picked.length === 0) return;
+        for (const name of picked) {
+            const existing = vscode.window.terminals.find(t => t.name === name);
+            if (existing) {
+                existing.show();
+            } else {
+                const terminal = vscode.window.createTerminal(name);
+                terminal.sendText(`tmux attach -t "${name}"`);
+                terminal.show();
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        vscode.window.showInformationMessage(`Attached to ${picked.length} session(s)`);
+    });
+
+    const batchDeleteCommand = vscode.commands.registerCommand('tmuxgo_vscode.batchDelete', async () => {
+        const sessions = await tmuxService.getSessions();
+        if (sessions.length === 0) {
+            vscode.window.showWarningMessage('No tmux sessions found');
+            return;
+        }
+        const picked = await vscode.window.showQuickPick(sessions, {
+            canPickMany: true,
+            placeHolder: 'Select sessions to delete'
+        });
+        if (!picked || picked.length === 0) return;
+        const confirm = await vscode.window.showWarningMessage(
+            `Delete ${picked.length} session(s): ${picked.join(', ')}?`,
+            { modal: true },
+            'Delete'
+        );
+        if (confirm !== 'Delete') return;
+        for (const name of picked) {
+            await tmuxService.deleteSession(name);
+        }
+        tmuxSessionProvider.refresh();
+        vscode.window.showInformationMessage(`Deleted ${picked.length} session(s)`);
+    });
+
     context.subscriptions.push(
         attachCommand,
         refreshCommand,
@@ -418,6 +467,8 @@ export function activate(context: vscode.ExtensionContext) {
         inlineNewWindowCommand,
         inlineSplitPaneCommand,
         attachAllCommand,
+        batchAttachCommand,
+        batchDeleteCommand,
         tmuxSessionProvider // Add provider to dispose auto-refresh on deactivation
     );
 }

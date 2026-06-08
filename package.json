@@ -130,6 +130,16 @@
         "title": "Attach All Sessions",
         "category": "TmuxGo",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "tmuxgo_vscode.batchAttach",
+        "title": "Batch Attach Sessions",
+        "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.batchDelete",
+        "title": "Batch Delete Sessions",
+        "category": "TmuxGo"
       }
     ],
     "menus": {

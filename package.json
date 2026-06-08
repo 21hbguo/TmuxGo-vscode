@@ -1,9 +1,13 @@
 {
   "name": "tmuxgo-vscode",
   "displayName": "TmuxGo",
-  "description": "Manage tmux sessions in VS Code",
+  "description": "Manage tmux sessions in VS Code sidebar — based on vscode-tmux-manager",
   "version": "0.1.0",
   "publisher": "tmuxgo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/21hbguo/TmuxGo-vscode.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -11,8 +15,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:tmuxgo_sessions",
-    "onCommand:tmuxgo_vscode.attachSession"
+    "onView:tmuxgo_sessions"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -21,7 +24,7 @@
         {
           "id": "tmuxgo",
           "title": "TmuxGo",
-          "icon": "media/tmuxgo-icon.svg"
+          "icon": "resources/icon.svg"
         }
       ]
     },
@@ -35,104 +38,98 @@
     },
     "commands": [
       {
-        "command": "tmuxgo_vscode.attachSession",
-        "title": "TmuxGo: Attach Session"
-      },
-      {
-        "command": "tmuxgo_vscode.attachExclusive",
-        "title": "TmuxGo: Attach Exclusive"
-      },
-      {
-        "command": "tmuxgo_vscode.newSession",
-        "title": "TmuxGo: New Session",
-        "icon": "$(add)"
-      },
-      {
-        "command": "tmuxgo_vscode.killSession",
-        "title": "TmuxGo: Kill Session",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "tmuxgo_vscode.renameSession",
-        "title": "TmuxGo: Rename Session",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "tmuxgo_vscode.newWindow",
-        "title": "TmuxGo: New Window",
-        "icon": "$(add)"
-      },
-      {
-        "command": "tmuxgo_vscode.killWindow",
-        "title": "TmuxGo: Kill Window",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "tmuxgo_vscode.renameWindow",
-        "title": "TmuxGo: Rename Window",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "tmuxgo_vscode.splitHorizontal",
-        "title": "TmuxGo: Split Horizontal"
-      },
-      {
-        "command": "tmuxgo_vscode.splitVertical",
-        "title": "TmuxGo: Split Vertical"
-      },
-      {
-        "command": "tmuxgo_vscode.killPane",
-        "title": "TmuxGo: Kill Pane"
-      },
-      {
-        "command": "tmuxgo_vscode.toggleZoom",
-        "title": "TmuxGo: Toggle Zoom"
-      },
-      {
-        "command": "tmuxgo_vscode.capturePane",
-        "title": "TmuxGo: Capture Pane"
-      },
-      {
-        "command": "tmuxgo_vscode.sendKeys",
-        "title": "TmuxGo: Send Keys"
+        "command": "tmuxgo_vscode.attach",
+        "title": "Attach to Session",
+        "category": "TmuxGo",
+        "icon": "$(debug-start)"
       },
       {
         "command": "tmuxgo_vscode.refresh",
-        "title": "TmuxGo: Refresh",
-        "icon": "$(refresh)"
+        "title": "Refresh Sessions",
+        "category": "TmuxGo",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       },
       {
-        "command": "tmuxgo_vscode.selectWindow",
-        "title": "TmuxGo: Select Window"
+        "command": "tmuxgo_vscode.toggleAutoRefresh",
+        "title": "Toggle Auto Refresh",
+        "category": "TmuxGo",
+        "icon": "$(sync)"
       },
       {
-        "command": "tmuxgo_vscode.selectPane",
-        "title": "TmuxGo: Select Pane"
+        "command": "tmuxgo_vscode.rename",
+        "title": "Rename Session",
+        "category": "TmuxGo"
       },
       {
-        "command": "tmuxgo_vscode.switchWindow",
-        "title": "TmuxGo: Switch Window",
-        "icon": "$(list-flat)"
+        "command": "tmuxgo_vscode.renameWindow",
+        "title": "Rename Window",
+        "category": "TmuxGo"
       },
       {
-        "command": "tmuxgo_vscode.batchKillSessions",
-        "title": "TmuxGo: Batch Kill Sessions"
+        "command": "tmuxgo_vscode.new",
+        "title": "New Tmux Session",
+        "category": "TmuxGo",
+        "icon": {
+          "light": "resources/light/plus.svg",
+          "dark": "resources/dark/plus.svg"
+        }
       },
       {
-        "command": "tmuxgo_vscode.toggleFavorite",
-        "title": "TmuxGo: Toggle Favorite",
-        "icon": "$(star)"
+        "command": "tmuxgo_vscode.delete",
+        "title": "Delete Session",
+        "category": "TmuxGo"
       },
       {
-        "command": "tmuxgo_vscode.collapseAll",
-        "title": "TmuxGo: Collapse All",
-        "icon": "$(collapse-all)"
+        "command": "tmuxgo_vscode.kill-window",
+        "title": "Kill Window",
+        "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.newWindow",
+        "title": "New Window",
+        "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.splitPaneRight",
+        "title": "Split Pane Right",
+        "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.splitPaneDown",
+        "title": "Split Pane Down",
+        "category": "TmuxGo"
+      },
+      {
+        "command": "tmuxgo_vscode.inline.newWindow",
+        "title": "New Window",
+        "category": "TmuxGo",
+        "icon": {
+          "light": "resources/light/plus.svg",
+          "dark": "resources/dark/plus.svg"
+        }
+      },
+      {
+        "command": "tmuxgo_vscode.inline.splitPane",
+        "title": "Split Pane",
+        "category": "TmuxGo",
+        "icon": {
+          "light": "resources/light/plus.svg",
+          "dark": "resources/dark/plus.svg"
+        }
+      },
+      {
+        "command": "tmuxgo_vscode.kill-pane",
+        "title": "Kill Pane",
+        "category": "TmuxGo"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "tmuxgo_vscode.newSession",
+          "command": "tmuxgo_vscode.new",
           "when": "view == tmuxgo_sessions",
           "group": "navigation"
         },
@@ -142,175 +139,80 @@
           "group": "navigation"
         },
         {
-          "command": "tmuxgo_vscode.collapseAll",
+          "command": "tmuxgo_vscode.toggleAutoRefresh",
           "when": "view == tmuxgo_sessions",
-          "group": "navigation"
+          "group": "1_settings"
         }
       ],
       "view/item/context": [
         {
-          "command": "tmuxgo_vscode.attachSession",
-          "when": "viewItem == session",
-          "group": "tmuxgo@1"
+          "command": "tmuxgo_vscode.attach",
+          "when": "view == tmuxgo_sessions && (viewItem == tmuxSession || viewItem == tmuxWindow || viewItem == tmuxPane)",
+          "group": "inline"
         },
         {
-          "command": "tmuxgo_vscode.attachExclusive",
-          "when": "viewItem == session",
-          "group": "tmuxgo@2"
+          "command": "tmuxgo_vscode.inline.newWindow",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxSession",
+          "group": "inline"
         },
         {
-          "command": "tmuxgo_vscode.renameSession",
-          "when": "viewItem == session",
-          "group": "tmuxgo@3"
+          "command": "tmuxgo_vscode.inline.splitPane",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxPane",
+          "group": "inline"
         },
         {
-          "command": "tmuxgo_vscode.killSession",
-          "when": "viewItem == session",
-          "group": "tmuxgo@4"
-        },
-        {
-          "command": "tmuxgo_vscode.newWindow",
-          "when": "viewItem == session",
-          "group": "tmuxgo@5"
+          "command": "tmuxgo_vscode.rename",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxSession",
+          "group": "1_modification"
         },
         {
           "command": "tmuxgo_vscode.renameWindow",
-          "when": "viewItem == window",
-          "group": "tmuxgo@1"
+          "when": "view == tmuxgo_sessions && viewItem == tmuxWindow",
+          "group": "1_modification"
         },
         {
-          "command": "tmuxgo_vscode.killWindow",
-          "when": "viewItem == window",
-          "group": "tmuxgo@2"
+          "command": "tmuxgo_vscode.newWindow",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxSession",
+          "group": "1_modification"
         },
         {
-          "command": "tmuxgo_vscode.splitHorizontal",
-          "when": "viewItem == pane || viewItem == window",
-          "group": "tmuxgo@1"
+          "command": "tmuxgo_vscode.splitPaneRight",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxPane",
+          "group": "1_modification"
         },
         {
-          "command": "tmuxgo_vscode.splitVertical",
-          "when": "viewItem == pane || viewItem == window",
-          "group": "tmuxgo@2"
+          "command": "tmuxgo_vscode.splitPaneDown",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxPane",
+          "group": "1_modification"
         },
         {
-          "command": "tmuxgo_vscode.toggleZoom",
-          "when": "viewItem == pane",
-          "group": "tmuxgo@3"
+          "command": "tmuxgo_vscode.delete",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxSession",
+          "group": "2_destructive"
         },
         {
-          "command": "tmuxgo_vscode.capturePane",
-          "when": "viewItem == pane",
-          "group": "tmuxgo@4"
+          "command": "tmuxgo_vscode.kill-window",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxWindow",
+          "group": "2_destructive"
         },
         {
-          "command": "tmuxgo_vscode.sendKeys",
-          "when": "viewItem == pane",
-          "group": "tmuxgo@5"
-        },
-        {
-          "command": "tmuxgo_vscode.killPane",
-          "when": "viewItem == pane",
-          "group": "tmuxgo@6"
-        },
-        {
-          "command": "tmuxgo_vscode.selectWindow",
-          "when": "viewItem == window",
-          "group": "tmuxgo@3"
-        },
-        {
-          "command": "tmuxgo_vscode.selectPane",
-          "when": "viewItem == pane",
-          "group": "tmuxgo@7"
+          "command": "tmuxgo_vscode.kill-pane",
+          "when": "view == tmuxgo_sessions && viewItem == tmuxPane",
+          "group": "2_destructive"
         }
       ]
-    },
-    "keybindings": [
-      {
-        "command": "tmuxgo_vscode.attachSession",
-        "key": "ctrl+shift+t",
-        "mac": "cmd+shift+t"
-      },
-      {
-        "command": "tmuxgo_vscode.newSession",
-        "key": "ctrl+shift+n",
-        "mac": "cmd+shift+n"
-      },
-      {
-        "command": "tmuxgo_vscode.killSession",
-        "key": "ctrl+shift+k",
-        "mac": "cmd+shift+k"
-      },
-      {
-        "command": "tmuxgo_vscode.splitVertical",
-        "key": "ctrl+shift+backslash",
-        "mac": "cmd+shift+backslash"
-      },
-      {
-        "command": "tmuxgo_vscode.splitHorizontal",
-        "key": "ctrl+shift+-",
-        "mac": "cmd+shift+-"
-      },
-      {
-        "command": "tmuxgo_vscode.toggleZoom",
-        "key": "ctrl+shift+z",
-        "mac": "cmd+shift+z"
-      },
-      {
-        "command": "tmuxgo_vscode.switchWindow",
-        "key": "ctrl+shift+w",
-        "mac": "cmd+shift+w"
-      },
-      {
-        "command": "tmuxgo_vscode.capturePane",
-        "key": "ctrl+shift+c",
-        "mac": "cmd+shift+c"
-      },
-      {
-        "command": "tmuxgo_vscode.collapseAll",
-        "key": "ctrl+shift+e",
-        "mac": "cmd+shift+e"
-      }
-    ],
-    "configuration": {
-      "title": "TmuxGo",
-      "properties": {
-        "tmuxgo.refreshInterval": {
-          "type": "number",
-          "default": 2000,
-          "description": "Tree view refresh interval in ms"
-        },
-        "tmuxgo.defaultSession": {
-          "type": "string",
-          "default": "",
-          "description": "Default session to attach"
-        }
-      }
-    },
-    "viewsWelcome": [
-      {
-        "view": "tmuxgo_sessions",
-        "contents": "No tmux sessions found.\n[Create New Session](command:tmuxgo_vscode.newSession)"
-      }
-    ]
+    }
   },
   "scripts": {
-    "postinstall": "electron-rebuild -m node_modules/node-pty",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts",
-    "package": "vsce package",
-    "pretest": "npm run compile",
-    "test": "node ./out/test/runTest.js"
+    "package": "vsce package --allow-missing-repository"
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.0.4",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^2.22.0",
     "typescript": "^5.3.0"
-  },
-  "dependencies": {
-    "node-pty": "^1.1.0"
   }
 }

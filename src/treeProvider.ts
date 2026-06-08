@@ -100,7 +100,7 @@ export class TmuxSessionProvider implements vscode.TreeDataProvider<TmuxTreeItem
 export class TmuxSessionTreeItem extends vscode.TreeItem {
     constructor(public readonly session: TmuxSession) {
         const label = session.name;
-        super(label, vscode.TreeItemCollapsibleState.Expanded);
+        super(label, vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tmuxSession';
         this.iconPath = new vscode.ThemeIcon('server');
         
@@ -127,7 +127,7 @@ export class TmuxSessionTreeItem extends vscode.TreeItem {
 export class TmuxWindowTreeItem extends vscode.TreeItem {
     constructor(public readonly window: TmuxWindow, extensionPath: string, sessionAttached: boolean) {
         const label = `${window.index}:${window.name}`;
-        super(label, vscode.TreeItemCollapsibleState.Expanded);
+        super(label, vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tmuxWindow';
         this.iconPath = new vscode.ThemeIcon('window');
         

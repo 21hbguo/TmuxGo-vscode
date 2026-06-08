@@ -3,7 +3,7 @@ import type { TmuxSession, TmuxWindow, TmuxPane, HostConfig } from './types'
 
 export class HostTreeItem extends vscode.TreeItem {
   constructor(public readonly host: HostConfig, public readonly sessions: TmuxSession[]) {
-    super(host.name, vscode.TreeItemCollapsibleState.Expanded)
+    super(host.name, vscode.TreeItemCollapsibleState.Collapsed)
     this.contextValue = 'host'
     this.iconPath = new vscode.ThemeIcon(
       host.type === 'local' ? 'computer' : 'remote'
@@ -14,7 +14,7 @@ export class HostTreeItem extends vscode.TreeItem {
 
 export class SessionTreeItem extends vscode.TreeItem {
   constructor(public readonly session: TmuxSession, public readonly hostId: string) {
-    super(session.name, vscode.TreeItemCollapsibleState.Expanded)
+    super(session.name, vscode.TreeItemCollapsibleState.Collapsed)
     this.contextValue = 'session'
     this.iconPath = new vscode.ThemeIcon('terminal')
     this.description = `${session.windows.length} window${session.windows.length !== 1 ? 's' : ''}`
@@ -28,7 +28,7 @@ export class SessionTreeItem extends vscode.TreeItem {
 
 export class WindowTreeItem extends vscode.TreeItem {
   constructor(public readonly window: TmuxWindow, public readonly sessionName: string, public readonly hostId: string) {
-    super(`@${window.index} ${window.name}`, vscode.TreeItemCollapsibleState.Expanded)
+    super(`@${window.index} ${window.name}`, vscode.TreeItemCollapsibleState.Collapsed)
     this.contextValue = 'window'
     this.iconPath = new vscode.ThemeIcon('browser')
     this.description = `${window.panes.length} pane${window.panes.length !== 1 ? 's' : ''}`

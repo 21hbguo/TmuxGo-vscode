@@ -20,10 +20,7 @@ export class SessionPseudoterminal implements vscode.Pseudoterminal {
   ) {}
 
   open(): void {
-    const args = ['attach', '-t', this.sessionName]
-    if (this.options.exclusive) {
-      args.push('-d')
-    }
+    const args = ['attach', '-t', this.sessionName, '-d']
     args.push('-f', 'ignore-size,active-pane')
 
     this.pty = spawn('tmux', args, {

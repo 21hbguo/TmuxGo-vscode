@@ -6,7 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
     const tmuxService = new TmuxService();
     const tmuxSessionProvider = new TmuxSessionProvider(tmuxService, context.extensionPath);
 
-    vscode.window.registerTreeDataProvider('tmuxgo_vscode', tmuxSessionProvider);
+    vscode.window.registerTreeDataProvider('tmuxgo_sessions', tmuxSessionProvider);
 
     const attachCommand = vscode.commands.registerCommand('tmuxgo_vscode.attach', async (item: TmuxSessionTreeItem | TmuxWindowTreeItem | TmuxPaneTreeItem) => {
         if (!item) {

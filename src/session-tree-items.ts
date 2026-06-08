@@ -36,6 +36,11 @@ export class WindowTreeItem extends vscode.TreeItem {
       this.label = `@${window.index} ${window.name}`
       this.description = `(active) ${window.panes.length} pane${window.panes.length !== 1 ? 's' : ''}`
     }
+    this.command = {
+      command: 'tmuxgo_vscode.selectWindow',
+      title: 'Select Window',
+      arguments: [`${sessionName}:${window.index}`],
+    }
   }
 }
 
@@ -47,6 +52,11 @@ export class PaneTreeItem extends vscode.TreeItem {
     this.description = `${pane.width}x${pane.height}`
     if (pane.zoomed) {
       this.description += ' (zoomed)'
+    }
+    this.command = {
+      command: 'tmuxgo_vscode.selectPane',
+      title: 'Select Pane',
+      arguments: [target],
     }
   }
 }

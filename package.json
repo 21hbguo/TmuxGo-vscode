@@ -6,7 +6,7 @@
   "publisher": "tmuxgo",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
-  "activationEvents": [],
+  "activationEvents": ["onView:tmuxgo_sessions", "onCommand:tmuxgo_vscode.attachSession"],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -41,7 +41,12 @@
       { "command": "tmuxgo_vscode.toggleZoom", "title": "TmuxGo: Toggle Zoom" },
       { "command": "tmuxgo_vscode.capturePane", "title": "TmuxGo: Capture Pane" },
       { "command": "tmuxgo_vscode.sendKeys", "title": "TmuxGo: Send Keys" },
-      { "command": "tmuxgo_vscode.refresh", "title": "TmuxGo: Refresh", "icon": "$(refresh)" }
+      { "command": "tmuxgo_vscode.refresh", "title": "TmuxGo: Refresh", "icon": "$(refresh)" },
+      { "command": "tmuxgo_vscode.selectWindow", "title": "TmuxGo: Select Window" },
+      { "command": "tmuxgo_vscode.selectPane", "title": "TmuxGo: Select Pane" },
+      { "command": "tmuxgo_vscode.switchWindow", "title": "TmuxGo: Switch Window", "icon": "$(list-flat)" },
+      { "command": "tmuxgo_vscode.batchKillSessions", "title": "TmuxGo: Batch Kill Sessions" },
+      { "command": "tmuxgo_vscode.toggleFavorite", "title": "TmuxGo: Toggle Favorite", "icon": "$(star)" }
     ],
     "menus": {
       "view/title": [
@@ -61,12 +66,41 @@
         { "command": "tmuxgo_vscode.toggleZoom", "when": "viewItem == pane", "group": "tmuxgo@3" },
         { "command": "tmuxgo_vscode.capturePane", "when": "viewItem == pane", "group": "tmuxgo@4" },
         { "command": "tmuxgo_vscode.sendKeys", "when": "viewItem == pane", "group": "tmuxgo@5" },
-        { "command": "tmuxgo_vscode.killPane", "when": "viewItem == pane", "group": "tmuxgo@6" }
+        { "command": "tmuxgo_vscode.killPane", "when": "viewItem == pane", "group": "tmuxgo@6" },
+        { "command": "tmuxgo_vscode.selectWindow", "when": "viewItem == window", "group": "tmuxgo@3" },
+        { "command": "tmuxgo_vscode.selectPane", "when": "viewItem == pane", "group": "tmuxgo@7" }
       ]
     },
     "keybindings": [
       { "command": "tmuxgo_vscode.attachSession", "key": "ctrl+shift+t", "mac": "cmd+shift+t" },
-      { "command": "tmuxgo_vscode.newSession", "key": "ctrl+shift+n", "mac": "cmd+shift+n" }
+      { "command": "tmuxgo_vscode.newSession", "key": "ctrl+shift+n", "mac": "cmd+shift+n" },
+      { "command": "tmuxgo_vscode.killSession", "key": "ctrl+shift+k", "mac": "cmd+shift+k" },
+      { "command": "tmuxgo_vscode.splitVertical", "key": "ctrl+shift+backslash", "mac": "cmd+shift+backslash" },
+      { "command": "tmuxgo_vscode.splitHorizontal", "key": "ctrl+shift+-", "mac": "cmd+shift+-" },
+      { "command": "tmuxgo_vscode.toggleZoom", "key": "ctrl+shift+z", "mac": "cmd+shift+z" },
+      { "command": "tmuxgo_vscode.switchWindow", "key": "ctrl+shift+w", "mac": "cmd+shift+w" },
+      { "command": "tmuxgo_vscode.capturePane", "key": "ctrl+shift+c", "mac": "cmd+shift+c" }
+    ],
+    "configuration": {
+      "title": "TmuxGo",
+      "properties": {
+        "tmuxgo.refreshInterval": {
+          "type": "number",
+          "default": 2000,
+          "description": "Tree view refresh interval in ms"
+        },
+        "tmuxgo.defaultSession": {
+          "type": "string",
+          "default": "",
+          "description": "Default session to attach"
+        }
+      }
+    },
+    "viewsWelcome": [
+      {
+        "view": "tmuxgo_sessions",
+        "contents": "No tmux sessions found.\n[Create New Session](command:tmuxgo_vscode.newSession)"
+      }
     ]
   },
   "scripts": {

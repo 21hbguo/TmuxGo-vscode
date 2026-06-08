@@ -3,21 +3,48 @@ import { TmuxClient } from './tmux-client'
 import { SessionTreeProvider } from './session-tree-provider'
 import { SessionPseudoterminal } from './session-pseudoterminal'
 import { SessionTreeItem, WindowTreeItem, PaneTreeItem, type TreeItem } from './session-tree-items'
+import { batchKillSessions, showBatchDeletePreview } from './batch-operations'
+import { SessionOrderManager } from './session-persistence'
 
 const attachedTerminals = new Map<string, vscode.Terminal>()
+
+function createAndTrackTerminal(
+  context: vscode.ExtensionContext,
+  treeProvider: SessionTreeProvider,
+  sessionName: string,
+  pty: SessionPseudoterminal
+): vscode.Terminal {
+  const terminal = vscode.window.createTerminal({
+    name: `tmux: ${sessionName}`,
+    pty,
+  })
+  attachedTerminals.set(sessionName, terminal)
+  terminal.show()
+
+  const disposable = vscode.window.onDidCloseTerminal(t => {
+    if (t === terminal) {
+      attachedTerminals.delete(sessionName)
+      disposable.dispose()
+      treeProvider.refresh()
+    }
+  })
+  context.subscriptions.push(disposable)
+  return terminal
+}
 
 export function registerCommands(
   context: vscode.ExtensionContext,
   tmux: TmuxClient,
   treeProvider: SessionTreeProvider
 ): void {
+  const orderManager = new SessionOrderManager(context)
+
   const attach = async (treeItem?: TreeItem) => {
     const sessionName = treeItem instanceof SessionTreeItem
       ? treeItem.session.name
       : await pickSession(tmux)
     if (!sessionName) return
 
-    // Reuse existing terminal if already attached
     const existing = attachedTerminals.get(sessionName)
     if (existing) {
       existing.show()
@@ -25,22 +52,7 @@ export function registerCommands(
     }
 
     const pty = new SessionPseudoterminal(sessionName)
-    const terminal = vscode.window.createTerminal({
-      name: `tmux: ${sessionName}`,
-      pty,
-    })
-    attachedTerminals.set(sessionName, terminal)
-    terminal.show()
-
-    // Clean up on close
-    const disposable = vscode.window.onDidCloseTerminal(t => {
-      if (t === terminal) {
-        attachedTerminals.delete(sessionName)
-        disposable.dispose()
-        treeProvider.refresh()
-      }
-    })
-    context.subscriptions.push(disposable)
+    createAndTrackTerminal(context, treeProvider, sessionName, pty)
   }
 
   const attachExclusive = async (treeItem?: TreeItem) => {
@@ -50,13 +62,7 @@ export function registerCommands(
     if (!sessionName) return
 
     const pty = new SessionPseudoterminal(sessionName, { exclusive: true })
-    const terminal = vscode.window.createTerminal({
-      name: `tmux: ${sessionName}`,
-      pty,
-    })
-    attachedTerminals.set(sessionName, terminal)
-    terminal.show()
-    treeProvider.refresh()
+    createAndTrackTerminal(context, treeProvider, sessionName, pty)
   }
 
   const newSession = async () => {
@@ -229,8 +235,104 @@ export function registerCommands(
     if (!keys) return
     try {
       await tmux.sendKeys(treeItem.target, keys)
+      vscode.window.showInformationMessage('Keys sent')
     } catch (err: any) {
       vscode.window.showErrorMessage(`Failed to send keys: ${err.message}`)
+    }
+  }
+
+  const selectWindow = async (treeItemOrTarget?: TreeItem | string) => {
+    const target = treeItemOrTarget instanceof WindowTreeItem
+      ? `${treeItemOrTarget.sessionName}:${treeItemOrTarget.window.index}`
+      : typeof treeItemOrTarget === 'string'
+        ? treeItemOrTarget
+        : undefined
+    if (!target) return
+    try {
+      await tmux.selectWindow(target)
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Failed to select window: ${err.message}`)
+    }
+  }
+
+  const selectPane = async (treeItemOrTarget?: TreeItem | string) => {
+    const target = treeItemOrTarget instanceof PaneTreeItem
+      ? treeItemOrTarget.target
+      : typeof treeItemOrTarget === 'string'
+        ? treeItemOrTarget
+        : undefined
+    if (!target) return
+    try {
+      await tmux.selectPane(target)
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Failed to select pane: ${err.message}`)
+    }
+  }
+
+  const switchWindow = async () => {
+    const sessionName = await pickSession(tmux)
+    if (!sessionName) return
+    const target = await pickWindows(tmux, sessionName)
+    if (!target) return
+    try {
+      await tmux.selectWindow(target)
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Failed to switch window: ${err.message}`)
+    }
+  }
+
+  const doBatchKillSessions = async () => {
+    const sessions = await tmux.listSessions()
+    if (sessions.length === 0) {
+      vscode.window.showWarningMessage('No tmux sessions found')
+      return
+    }
+
+    const confirmed = await showBatchDeletePreview(sessions.map(s => s.name))
+    if (!confirmed) return
+
+    const picks = sessions.map(s => ({
+      label: s.name,
+      description: `${s.windows.length} windows`,
+      picked: true,
+    }))
+    const selected = await vscode.window.showQuickPick(picks, {
+      canPickMany: true,
+      placeHolder: 'Select sessions to kill',
+      title: 'Batch Kill Sessions',
+    })
+    if (!selected || selected.length === 0) return
+
+    const names = selected.map(s => s.label)
+    const result = await batchKillSessions(tmux, names)
+
+    treeProvider.refresh()
+    if (result.failed.length > 0) {
+      const failedList = result.failed.map(f => `${f.name}: ${f.error}`).join('\n')
+      vscode.window.showErrorMessage(
+        `Batch kill: ${result.success.length} succeeded, ${result.failed.length} failed\n${failedList}`
+      )
+    } else {
+      vscode.window.showInformationMessage(`Batch kill: ${result.success.length} session${result.success.length > 1 ? 's' : ''} killed`)
+    }
+  }
+
+  const toggleFavorite = async (treeItem?: TreeItem) => {
+    const sessionName = treeItem instanceof SessionTreeItem
+      ? treeItem.session.name
+      : await pickSession(tmux)
+    if (!sessionName) return
+
+    try {
+      await orderManager.toggleFavorite(sessionName)
+      treeProvider.refresh()
+      const favorites = orderManager.getFavoriteSessions()
+      const isFav = favorites.includes(sessionName)
+      vscode.window.showInformationMessage(
+        isFav ? `"${sessionName}" added to favorites` : `"${sessionName}" removed from favorites`
+      )
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Failed to toggle favorite: ${err.message}`)
     }
   }
 
@@ -252,6 +354,11 @@ export function registerCommands(
     vscode.commands.registerCommand('tmuxgo_vscode.toggleZoom', toggleZoom),
     vscode.commands.registerCommand('tmuxgo_vscode.capturePane', capturePane),
     vscode.commands.registerCommand('tmuxgo_vscode.sendKeys', sendKeys),
+    vscode.commands.registerCommand('tmuxgo_vscode.selectWindow', selectWindow),
+    vscode.commands.registerCommand('tmuxgo_vscode.selectPane', selectPane),
+    vscode.commands.registerCommand('tmuxgo_vscode.switchWindow', switchWindow),
+    vscode.commands.registerCommand('tmuxgo_vscode.batchKillSessions', doBatchKillSessions),
+    vscode.commands.registerCommand('tmuxgo_vscode.toggleFavorite', toggleFavorite),
     vscode.commands.registerCommand('tmuxgo_vscode.refresh', refresh),
   )
 }
@@ -269,6 +376,23 @@ async function pickSession(tmux: TmuxClient): Promise<string | undefined> {
   }))
   const picked = await vscode.window.showQuickPick(items, {
     placeHolder: 'Select a tmux session',
+  })
+  return picked?.value
+}
+
+async function pickWindows(tmux: TmuxClient, sessionName: string): Promise<string | undefined> {
+  const windows = await tmux.listWindows(sessionName)
+  if (windows.length === 0) {
+    vscode.window.showWarningMessage('No windows found in session')
+    return undefined
+  }
+  const items = windows.map(w => ({
+    label: `@${w.index} ${w.name}`,
+    description: w.active ? '(active)' : `${w.panes.length} panes`,
+    value: `${sessionName}:${w.index}`,
+  }))
+  const picked = await vscode.window.showQuickPick(items, {
+    placeHolder: 'Select a window',
   })
   return picked?.value
 }

@@ -16,19 +16,68 @@ export class TmuxClient {
 
   async listSessions(): Promise<TmuxSession[]> {
     try {
-      const raw = await this.exec([
-        'list-sessions', '-F',
-        '#{session_id}|#{session_name}|#{session_attached}|#{session_created}'
+      const [sessionsRaw, windowsRaw, panesRaw] = await Promise.all([
+        this.exec([
+          'list-sessions', '-F',
+          '#{session_id}|#{session_name}|#{session_attached}|#{session_created}'
+        ]),
+        this.exec([
+          'list-windows', '-a', '-F',
+          '#{session_name}|#{window_id}|#{window_index}|#{window_name}|#{window_active}'
+        ]),
+        this.exec([
+          'list-panes', '-a', '-F',
+          '#{session_name}:#{window_index}|#{pane_id}|#{pane_index}|#{pane_title}|#{pane_width}|#{pane_height}|#{pane_active}|#{pane_zoomed}'
+        ]),
       ])
-      if (!raw) return []
+
+      if (!sessionsRaw) return []
+
+      const panesByWindow = new Map<string, TmuxPane[]>()
+      if (panesRaw) {
+        for (const line of panesRaw.split('\n')) {
+          const [winKey, id, index, title, w, h, active, zoomed] = line.split('|')
+          const pane: TmuxPane = {
+            id,
+            index: parseInt(index, 10),
+            title,
+            width: parseInt(w, 10),
+            height: parseInt(h, 10),
+            active: active === '1',
+            zoomed: zoomed === '1',
+          }
+          let arr = panesByWindow.get(winKey)
+          if (!arr) { arr = []; panesByWindow.set(winKey, arr) }
+          arr.push(pane)
+        }
+      }
+
+      const windowsBySession = new Map<string, TmuxWindow[]>()
+      if (windowsRaw) {
+        for (const line of windowsRaw.split('\n')) {
+          const [sessName, id, index, name, active] = line.split('|')
+          const winKey = `${sessName}:${index}`
+          const window: TmuxWindow = {
+            id,
+            index: parseInt(index, 10),
+            name,
+            active: active === '1',
+            panes: panesByWindow.get(winKey) ?? [],
+          }
+          let arr = windowsBySession.get(sessName)
+          if (!arr) { arr = []; windowsBySession.set(sessName, arr) }
+          arr.push(window)
+        }
+      }
+
       const sessions: TmuxSession[] = []
-      for (const line of raw.split('\n')) {
+      for (const line of sessionsRaw.split('\n')) {
         const [id, name, attached, created] = line.split('|')
         sessions.push({
           id,
           name,
           attached: parseInt(attached, 10) || 0,
-          windows: await this.listWindows(name),
+          windows: windowsBySession.get(name) ?? [],
           createdAt: created,
         })
       }
@@ -40,20 +89,47 @@ export class TmuxClient {
 
   async listWindows(session: string): Promise<TmuxWindow[]> {
     try {
-      const raw = await this.exec([
-        'list-windows', '-t', session, '-F',
-        '#{window_id}|#{window_index}|#{window_name}|#{window_active}'
+      const [windowsRaw, panesRaw] = await Promise.all([
+        this.exec([
+          'list-windows', '-t', session, '-F',
+          '#{window_id}|#{window_index}|#{window_name}|#{window_active}'
+        ]),
+        this.exec([
+          'list-panes', '-t', session, '-a', '-F',
+          '#{window_index}|#{pane_id}|#{pane_index}|#{pane_title}|#{pane_width}|#{pane_height}|#{pane_active}|#{pane_zoomed}'
+        ]),
       ])
-      if (!raw) return []
+
+      if (!windowsRaw) return []
+
+      const panesByIndex = new Map<string, TmuxPane[]>()
+      if (panesRaw) {
+        for (const line of panesRaw.split('\n')) {
+          const [winIdx, id, index, title, w, h, active, zoomed] = line.split('|')
+          const pane: TmuxPane = {
+            id,
+            index: parseInt(index, 10),
+            title,
+            width: parseInt(w, 10),
+            height: parseInt(h, 10),
+            active: active === '1',
+            zoomed: zoomed === '1',
+          }
+          let arr = panesByIndex.get(winIdx)
+          if (!arr) { arr = []; panesByIndex.set(winIdx, arr) }
+          arr.push(pane)
+        }
+      }
+
       const windows: TmuxWindow[] = []
-      for (const line of raw.split('\n')) {
+      for (const line of windowsRaw.split('\n')) {
         const [id, index, name, active] = line.split('|')
         windows.push({
           id,
           index: parseInt(index, 10),
           name,
           active: active === '1',
-          panes: await this.listPanes(`${session}:${index}`),
+          panes: panesByIndex.get(index) ?? [],
         })
       }
       return windows

@@ -3,7 +3,7 @@ import type { TmuxSession, TmuxWindow, TmuxPane, HostConfig } from './types'
 
 export class HostTreeItem extends vscode.TreeItem {
   constructor(public readonly host: HostConfig, public readonly sessions: TmuxSession[]) {
-    super(host.name, vscode.TreeItemCollapsibleState.Collapsed)
+    super(host.name, vscode.TreeItemCollapsibleState.Expanded)
     this.contextValue = 'host'
     this.iconPath = new vscode.ThemeIcon(
       host.type === 'local' ? 'computer' : 'remote'

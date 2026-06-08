@@ -122,6 +122,11 @@
         "command": "tmuxgo_vscode.toggleFavorite",
         "title": "TmuxGo: Toggle Favorite",
         "icon": "$(star)"
+      },
+      {
+        "command": "tmuxgo_vscode.collapseAll",
+        "title": "TmuxGo: Collapse All",
+        "icon": "$(collapse-all)"
       }
     ],
     "menus": {
@@ -133,6 +138,11 @@
         },
         {
           "command": "tmuxgo_vscode.refresh",
+          "when": "view == tmuxgo_sessions",
+          "group": "navigation"
+        },
+        {
+          "command": "tmuxgo_vscode.collapseAll",
           "when": "view == tmuxgo_sessions",
           "group": "navigation"
         }
@@ -255,6 +265,11 @@
         "command": "tmuxgo_vscode.capturePane",
         "key": "ctrl+shift+c",
         "mac": "cmd+shift+c"
+      },
+      {
+        "command": "tmuxgo_vscode.collapseAll",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e"
       }
     ],
     "configuration": {

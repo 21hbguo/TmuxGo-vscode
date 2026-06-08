@@ -338,6 +338,10 @@ export function registerCommands(
 
   const refresh = () => treeProvider.refresh()
 
+  const collapseAll = () => {
+    vscode.commands.executeCommand('workbench.actions.treeView.tmuxgo_sessions.collapseAll')
+  }
+
   // Register all commands
   context.subscriptions.push(
     vscode.commands.registerCommand('tmuxgo_vscode.attachSession', attach),
@@ -360,6 +364,7 @@ export function registerCommands(
     vscode.commands.registerCommand('tmuxgo_vscode.batchKillSessions', doBatchKillSessions),
     vscode.commands.registerCommand('tmuxgo_vscode.toggleFavorite', toggleFavorite),
     vscode.commands.registerCommand('tmuxgo_vscode.refresh', refresh),
+    vscode.commands.registerCommand('tmuxgo_vscode.collapseAll', collapseAll),
   )
 }
 
